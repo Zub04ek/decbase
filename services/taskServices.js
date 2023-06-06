@@ -1,65 +1,37 @@
-const fs = require("fs/promises");
-const path = require("path");
-const crypto = require("crypto");
 const { HTTPError } = require("../utils/HTTPError");
+const { Task } = require("../models/Task");
 
-const writeDb = async (tasks) => {
-  await fs.writeFile(tasksPath, JSON.stringify(tasks, null, 2));
-};
-
-// const tasksPath = path.join(__dirname, 'db', "tasks.json");
-const tasksPath = path.join(process.cwd(), "db", "tasks.json");
-
-const getTasks = async () => {
-  const tasks = await fs.readFile(tasksPath);
-  return JSON.parse(tasks);
+const getTasks = async (page, limit) => {
+  const skip = (page - 1) * limit;
+  return await Task.find().limit(limit).skip(skip);
 };
 
 const getTaskByID = async (taskId) => {
-  const tasks = await getTasks();
-  const task = tasks.find((task) => task.id === taskId);
+  const task = await Task.findById(taskId);
   if (!task) {
-    throw new HTTPError(404);
+    throw new HTTPError(404)
   }
+  return task;
 };
 
 const addTask = async (taskData) => {
-  const newTask = {
-    id: crypto.randomUUID(),
-    ...taskData,
-  };
-  const tasks = await getTasks();
-  tasks.push(newTask);
-  await writeDb(tasks);
-  return newTask;
+  return await Task.create(taskData);
 };
 
 const updateTask = async (taskId, data) => {
-  const tasks = await getTasks();
-  const index = tasks.findIndex((task) => task.id === taskId);
-  if (index === -1) {
-    throw new HTTPError(404);
+  const task = await Task.findByIdAndUpdate(taskId, data, {new: true});
+  if (!task) {
+    throw new HTTPError(404)
   }
-  tasks.splice(index, 1, { ...tasks[index], ...data });
-
-  // tasks[index] = { ...tasks[index], ...data };
-
-  //   oneTask.title = data.title || oneTask.title;
-  //   oneTask.completed = data.completed || oneTask.completed;
-
-  await writeDb(tasks);
-  return tasks[index];
+  return task;
 };
 
 const deleteTask = async (taskId) => {
-  const tasks = await getTasks();
-  const index = tasks.findIndex((task) => task.id === taskId);
-  if (index === -1) {
-    throw new HTTPError(404);
+  const task = await Task.findByIdAndDelete(taskId);
+  if (!task) {
+    throw new HTTPError(404)
   }
-  tasks.splice(index, 1);
-  await writeDb(tasks);
-  return index;
+  return taskId;
 };
 
 module.exports = {
