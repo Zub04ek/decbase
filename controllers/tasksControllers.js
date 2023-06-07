@@ -8,8 +8,8 @@ const {
 const { asyncWrapper } = require("../utils/asyncWrapper");
 
 const getTasksController = asyncWrapper(async (req, res) => {
-  const { page=1, limit=10 } = req.query;
-  const tasks = await getTasks(page, limit);
+  const { page=1, limit=10, completed } = req.query;
+  const tasks = await getTasks(page, limit, completed);
   res.json(tasks);
 });
 

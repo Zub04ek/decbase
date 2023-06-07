@@ -1,9 +1,16 @@
 const { HTTPError } = require("../utils/HTTPError");
 const { Task } = require("../models/Task");
 
-const getTasks = async (page, limit) => {
+const getTasks = async (page, limit, completed) => {
   const skip = (page - 1) * limit;
-  return await Task.find().limit(limit).skip(skip);
+  const filter = {};
+  if (completed === "true") {
+    filter.completed = true;
+  }
+  if (completed === "false") {
+    filter.completed = false;
+  }
+  return await Task.find(filter).limit(limit).skip(skip);
 };
 
 const getTaskByID = async (taskId) => {
