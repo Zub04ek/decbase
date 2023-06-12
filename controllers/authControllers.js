@@ -10,7 +10,10 @@ const signup = asyncWrapper(async (req, res) => {
   res.status(201).json(user);
 });
 
-const login = asyncWrapper(async (req, res) => {});
+const login = asyncWrapper(async (req, res) => {
+  const { user, accessToken } = await loginService(req.body);
+  res.json({ accessToken, user });
+});
 
 const logout = asyncWrapper(async (req, res) => {});
 

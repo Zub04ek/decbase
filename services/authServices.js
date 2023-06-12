@@ -2,6 +2,7 @@ const bcrypt = require("bcrypt");
 
 const { HTTPError } = require("../utils/HTTPError");
 const { User } = require("../models/User");
+const { assignTokens } = require("../utils/assignTokens");
 
 const signupService = async (body) => {
   const { email, password } = body;
@@ -16,7 +17,23 @@ const signupService = async (body) => {
   });
 };
 
-const loginService = async () => {};
+const loginService = async (body) => {
+  const { email, password } = body;
+  const user = await User.findOne({ email });
+  if (!user) {
+    throw new HTTPError(404, "User not found");
+  }
+  const isPasswordCorrect = await bcrypt.compare(password, user.password);
+  if (!isPasswordCorrect) {
+    throw new HTTPError(404, "Email or password is wrong");
+  }
+  const { accessToken, refreshToken } = assignTokens(user);
+  await User.findByIdAndUpdate(user._id, { refresh_token: refreshToken });
+  return {
+    accessToken,
+    user,
+  };
+};
 
 const logoutService = async () => {};
 
