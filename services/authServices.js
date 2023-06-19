@@ -1,6 +1,6 @@
 const bcrypt = require("bcrypt");
 
-const { HTTPError } = require("../utils/HTTPError");
+const { HTTPError } = require("../utils/HttpError");
 const { User } = require("../models/User");
 const { assignTokens } = require("../utils/assignTokens");
 
@@ -35,7 +35,9 @@ const loginService = async (body) => {
   };
 };
 
-const logoutService = async () => {};
+const logoutService = async (userId) => {
+  await User.findByIdAndUpdate(userId, { refresh_token: null });
+};
 
 module.exports = {
   signupService,
