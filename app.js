@@ -1,16 +1,24 @@
 const express = require("express");
-const { tasksRouter } = require("./routes/taskRouter");
+const cors = require("cors");
+const helmet = require("helmet");
+const logger = require("morgan");
+
+const { rootRouter } = require("./routers");
+const { globalErrorHandler } = require("./middlewares/globalErrorHandler");
+const { notFoundHandler } = require("./middlewares/notFoundHandler");
 
 const app = express();
+app.use(cors());
+app.use(helmet());
+
+const formatLogger = app.get("env") === "development" ? "dev" : "short";
+app.use(logger(formatLogger));
+
 app.use(express.json());
 
-app.use("/tasks", tasksRouter);
-app.use((err, req, res, next) => {
-  console.log("err", JSON.stringify(err.message, null, 2));
-  //   const { message = "Something went wrong, please try again later" } = err;
-  res.status(err.statusCode || 500).json({
-    message: err.message || "Something went wrong, please try again later",
-  });
-});
+app.use("/", rootRouter);
+
+app.use(notFoundHandler);
+app.use(globalErrorHandler);
 
 module.exports = { app };
